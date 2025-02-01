@@ -18,6 +18,17 @@ __global__ void matrixMultiply(float *A, float *B, float *C, int numARows,
                                int numCColumns)
 {
   //@@ Implement matrix multiplication kernel here
+  int row = blockIdx.y * blockDim.y + threadIdx.y;
+  int col = blockIdx.x * blockDim.x + threadIdx.x;
+
+  if (row < numCRows && col < numCColumns) {
+    float pVal = 0;
+
+    for (int i = 0; i < numAColumns; i++) {
+      pVal += A[row*numAColumns + i] * B[i*numBColumns + col];
+    }
+    C[row*numCColumns + col] = pVal;
+  }
 }
 
 
@@ -46,35 +57,49 @@ int main(int argc, char **argv) {
   wbLog(TRACE, "The dimensions of B are ", numBRows, " x ", numBColumns);
 
   //@@ Set numCRows and numCColumns
-
+  numCRows = numARows;
+  numCColumns = numBColumns;
 
   //@@ Allocate the hostC matrix
-
+  hostC = (float*)malloc((numCRows * numCColumns) * sizeof(float));
 
   //@@ Allocate GPU memory here
+  float *tempA;
+  float *tempB;
+  float *tempC;
 
+  cudaMalloc((void**) &tempA, (numARows * numAColumns) * sizeof(float));
+  cudaMalloc((void**) &tempB, (numBRows * numBColumns) * sizeof(float));
+  cudaMalloc((void**) &tempC, (numCRows * numCColumns) * sizeof(float));
+  
 
   //@@ Copy memory to the GPU here
-
+  cudaMemcpy(tempA, hostA, (numARows * numAColumns) * sizeof(float), cudaMemcpyHostToDevice);
+  cudaMemcpy(tempB, hostB, (numBRows * numBColumns) * sizeof(float), cudaMemcpyHostToDevice);
 
   //@@ Initialize the grid and block dimensions here
-
+  float tileSize = 16.0;
+  dim3 dimGrid(ceil((1.0*numCColumns)/tileSize), ceil((1.0*numCRows)/tileSize), 1);
+  dim3 dimBlock(tileSize, tileSize, 1);
 
   //@@ Launch the GPU Kernel here
-
+  matrixMultiply<<<dimGrid, dimBlock>>>(tempA, tempB, tempC, numARows, numAColumns, numBRows, numBColumns, numCRows, numCColumns);
   cudaDeviceSynchronize();
   
   //@@ Copy the GPU memory back to the CPU here
-
+  cudaMemcpy(hostC, tempC, (numCRows * numCColumns) * sizeof(float), cudaMemcpyDeviceToHost);
 
   //@@ Free the GPU memory here
-
+  cudaFree(tempA);
+  cudaFree(tempB);
+  cudaFree(tempC);
 
   wbSolution(args, hostC, numCRows, numCColumns);
 
   free(hostA);
   free(hostB);
   //@@Free the hostC matrix
+  free(hostC);
 
   return 0;
 }
