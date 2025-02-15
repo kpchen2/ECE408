@@ -24,7 +24,7 @@ Users are required to either use a Personal Access Token (PAT) or SSH key for Gi
 
 In a Delta terminal, navigate to the location where you would like to keep your files for ECE 408, most likelly in your home directory. Run the following to clone your repository:
 
-  `git clone git@github.com:illinois-cs-coursework/sp25_ece408_NETID ece408git` where NETID is your UIUC NetID.
+  `git clone https://github.com/illinois-cs-coursework/sp25_ece408_NETID.git ece408git` where NETID is your UIUC NetID.
 
 You will be prompted to enter your username and password. Enter your Github username and then enter your Personal Access Token instead of your password.  This will clone the remote repository to "ece408git" folder on your computer where you will be able to retrieve/submit/work on assignments.
 
