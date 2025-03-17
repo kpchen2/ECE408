@@ -33,7 +33,7 @@ So please always do `git pull` to update the project instructions.
 | Milestone                   | Due                    | Score |
 | --------------------------- | ---------------------- | ----- |
 | [Milestone 1](README_m1.md) | March 7th, 2025 8PM | 15%   |
-
+| [Milestone 2](README_m2.md) | April 11th, 2025 8PM | 30%   |
 
 ## License
 
