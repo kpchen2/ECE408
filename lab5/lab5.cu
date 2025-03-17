@@ -20,6 +20,20 @@ __global__ void total(float *input, float *output, int len) {
   //@@ Load a segment of the input vector into shared memory
   //@@ Traverse the reduction tree
   //@@ Write the computed sum of the block to the output vector at the correct index
+  __shared__ float partialSum[2*BLOCK_SIZE];
+
+  unsigned int t = threadIdx.x;
+  unsigned int start = 2*blockIdx.x*blockDim.x;
+  partialSum[t] = input[start + t];
+  partialSum[blockDim.x+t] = input[start + blockDim.x + t];
+
+  for (unsigned int stride = blockDim.x; stride >= 1; stride >>= 1) {
+    __syncthreads();
+    if (t < stride) {
+      partialSum[t] += partialSum[t+stride];
+    }
+  }
+  output[blockIdx.x] = partialSum[0];
 }
 
 int main(int argc, char **argv) {
@@ -48,20 +62,26 @@ int main(int argc, char **argv) {
   // The number of output elements in the input is numOutputElements
 
   //@@ Allocate GPU memory
+  float *tempInput;
+  float *tempOutput;
 
+  cudaMalloc((void**) &tempInput, numInputElements * sizeof(float));
+  cudaMalloc((void**) &tempOutput, numOutputElements * sizeof(float));
 
   //@@ Copy input memory to the GPU
-
+  cudaMemcpy(tempInput, hostInput, numInputElements * sizeof(float), cudaMemcpyHostToDevice);
+  cudaMemcpy(tempInput, hostInput, numOutputElements * sizeof(float), cudaMemcpyHostToDevice);
 
   //@@ Initialize the grid and block dimensions here
-
+  dim3 dimGrid((numInputElements-1)/BLOCK_SIZE + 1, 1, 1);
+  dim3 dimBlock(BLOCK_SIZE, 1, 1);
 
   //@@ Launch the GPU Kernel and perform CUDA computation
-
+  total<<<dimGrid, dimBlock>>>(tempInput, tempOutput, numInputElements);
   
   cudaDeviceSynchronize();  
   //@@ Copy the GPU output memory back to the CPU
-
+  cudaMemcpy(hostOutput, tempOutput, numOutputElements * sizeof(float), cudaMemcpyDeviceToHost);
   
   /********************************************************************
    * Reduce output vector on the host
@@ -74,7 +94,8 @@ int main(int argc, char **argv) {
   }
 
   //@@ Free the GPU memory
-
+  cudaFree(tempInput);
+  cudaFree(tempOutput);
 
 
   wbSolution(args, hostOutput, 1);
