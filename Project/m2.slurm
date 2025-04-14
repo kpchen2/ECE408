@@ -18,7 +18,9 @@ module load cuda
 
 echo -e "job $SLURM_JOBID is starting on `hostname`\n\n"
 
-srun ./m2 100 > m2.out
+srun ./m2 10000 > m2.out
+# srun ./m1_gpu > m2.out
+# srun ./project/src/layer/custom/kernel-fusion-forward 100 > m2.out
 
 # Generate nsys profile information, output will be in profile.out and report.nsys-rep
 # srun nsys profile --stats=true ./m2 > profile.out

@@ -12,10 +12,13 @@
 #SBATCH --gpu-bind=closest
 #SBATCH --account=bche-delta-gpu
 #SBATCH -t 00:25:00
+#SBATCH --constraint="projects,perf,nvperf"
 
 module reset
 module load cuda
 
 echo -e "job $SLURM_JOBID is starting on `hostname`\n\n"
 
-srun ./m1_unroll 100 > m1_unroll.out
+# srun ./m1_unroll 100 > m1_unroll.out
+# srun ncu --set full -f -o analysis_file ./m1_unroll 10000 > unroll_ncu.out
+srun nsys profile --stats=true ./m1_unroll 10000 > profile.out
