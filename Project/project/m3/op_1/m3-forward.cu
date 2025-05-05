@@ -52,15 +52,8 @@ __global__ void matmul_conv_fused(const float * __restrict__ mask, const float *
         __syncthreads();
 
         if (row < Map_out && col < unroll_cols) {
-            for (int i = 0; i < TILE_WIDTH; i += 8) {
+            for (int i = 0; i < TILE_WIDTH; ++i) {
                 val += tileA[ty][i] * tileB[i][tx];
-                val += tileA[ty][i+1] * tileB[i+1][tx];
-                val += tileA[ty][i+2] * tileB[i+2][tx];
-                val += tileA[ty][i+3] * tileB[i+3][tx];
-                val += tileA[ty][i+4] * tileB[i+4][tx];
-                val += tileA[ty][i+5] * tileB[i+5][tx];
-                val += tileA[ty][i+6] * tileB[i+6][tx];
-                val += tileA[ty][i+7] * tileB[i+7][tx];
             }
         }
 
